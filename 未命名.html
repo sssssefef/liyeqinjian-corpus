@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秦简文书语料库 · 检索系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Noto Serif SC', '宋体', SimSun, serif;
+        }
+
+        body {
+            background-color: #f9f5ed;
+            background-image: linear-gradient(#f1ebe4 1px, transparent 1px);
+            background-size: 100% 20px;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(255, 255, 245, 0.85);
+            box-shadow: 0 8px 20px rgba(60, 40, 20, 0.1);
+            border: 1px solid #dac9b0;
+            border-radius: 12px;
+            padding: 2rem 1.8rem;
+            backdrop-filter: blur(4px);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 400;
+            color: #4d3e2e;
+            border-bottom: 2px solid #b29e80;
+            padding-bottom: 0.6rem;
+            margin-bottom: 1.8rem;
+            letter-spacing: 6px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 span {
+            background: #8b7a62;
+            color: #fef7e9;
+            font-size: 1rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            margin-left: 1rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .search-section {
+            background: #e8e0d2;
+            padding: 1.8rem 1.5rem;
+            border-radius: 40px 8px 40px 8px;
+            margin-bottom: 2.5rem;
+            box-shadow: inset 0 0 0 1px #fff6e8, inset 0 0 0 2px #cab99f;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #searchInput {
+            flex: 1;
+            min-width: 260px;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border: 2px solid #9b8b74;
+            border-radius: 50px;
+            outline: none;
+            background: #fffdf9;
+            color: #2e2a24;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        #searchInput:focus {
+            border-color: #5e4e3a;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(120, 80, 50, 0.15);
+        }
+
+        #searchBtn {
+            background: #5e4e3a;
+            color: white;
+            border: none;
+            padding: 1rem 2.2rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            letter-spacing: 4px;
+            transition: 0.2s;
+            box-shadow: 0 4px 0 #3a2e22;
+            border: 1px solid #aa9b86;
+        }
+
+        #searchBtn:hover {
+            background: #4a3d2c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #3a2e22, 0 6px 12px rgba(80, 60, 30, 0.2);
+        }
+
+        .stats {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #5c5348;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reset-link {
+            color: #6b3f2b;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+            padding: 0.3rem 1rem;
+            background: rgba(255,255,240,0.6);
+            border-radius: 30px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1.2rem;
+            border-left: 6px solid #b29e80;
+            padding-left: 1rem;
+        }
+
+        .result-count {
+            font-size: 1rem;
+            color: #3e362e;
+            background: #dcd0c0;
+            padding: 0.4rem 1.2rem;
+            border-radius: 30px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.8rem;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #d4c4ae;
+            border-radius: 16px 4px 16px 4px;
+            padding: 1.4rem 1.2rem;
+            box-shadow: 0 6px 14px rgba(80, 60, 30, 0.06);
+            transition: 0.15s;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(145deg, #fffdf8, #fefaf4);
+        }
+
+        .card:hover {
+            border-color: #a48e74;
+            box-shadow: 0 10px 22px rgba(90, 70, 40, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .jian-number {
+            font-size: 0.85rem;
+            color: #7e6b56;
+            background: #eee7dd;
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            margin-bottom: 0.8rem;
+            border: 1px solid #cfbea8;
+            align-self: flex-start;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .chinese {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #1f2a36;
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px dashed #ccbbaa;
+            word-break: break-word;
+        }
+
+        .english {
+            font-size: 0.98rem;
+            color: #3e4a4e;
+            background: #f6f2ec;
+            padding: 0.9rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-style: italic;
+            word-break: break-word;
+            border-left: 4px solid #b6ab9a;
+        }
+
+        .meta {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.6rem;
+            font-size: 0.82rem;
+            color: #6f5e4e;
+        }
+
+        .keyword {
+            background: #d1c0ab;
+            color: #1f1e1c;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+            border: 1px solid #ab9884;
+        }
+
+        .image-area {
+            margin-top: 0.8rem;
+            background: #f2efe8;
+            border-radius: 12px;
+            padding: 0.8rem;
+            text-align: center;
+            border: 1px dashed #aa9b86;
+        }
+
+        .image-area img {
+            max-width: 100%;
+            max-height: 160px;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .no-image {
+            color: #988f84;
+            font-size: 0.9rem;
+            padding: 0.8rem;
+            font-style: italic;
+        }
+
+        .no-result {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #f5efe7;
+            border-radius: 20px;
+            color: #6a5e50;
+            font-size: 1.2rem;
+            border: 2px dashed #c0ad98;
+        }
+
+        footer {
+            margin-top: 2.5rem;
+            text-align: center;
+            color: #8b7a62;
+            font-size: 0.8rem;
+            border-top: 1px solid #d6c6b2;
+            padding-top: 1.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            𖦹 秦简文书·语料库
+            <span>v1.0</span>
+        </h1>
+
+        <!-- 搜索区 —— 你想要的搜索框 -->
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="输入关键词：城旦舂 / 敢言之 / 赀 / 睡虎地 …" autofocus>
+                <button id="searchBtn">检索</button>
+            </div>
+            <div class="stats">
+                <span>📄 当前收录 <span id="totalCount">0</span> 枚简牍</span>
+                <span class="reset-link" onclick="resetSearch()">↺ 显示全部</span>
+            </div>
+        </div>
+
+        <!-- 结果数量 + 卡片展示区 -->
+        <div class="result-header">
+            <span class="result-count" id="resultCount">共 0 条结果</span>
+        </div>
+        <div id="cardContainer" class="card-grid">
+            <!-- 动态渲染卡片 -->
+        </div>
+        <footer>
+            数字化视角·秦简文书平行语料库 · 图像/摹本展示 · 检索系统
+        </footer>
+    </div>
+
+    <script>
+        // ----------------------------------------------
+        // 1. 语料数据（秦简文书 + 图片占位/真实图片）
+        //    你把这里替换成你自己的语料即可。
+        // ----------------------------------------------
+        const corpus = [
+            {
+                id: "睡虎地·秦律十八种·1",
+                chinese: "盗采人桑叶，赃不盈一钱，何论？赀徭三旬。",
+                english: "For stealing mulberry leaves from another's plantation, if the value of the stolen goods does not amount to one cash, how should he be sentenced? He should be fined three ten-day periods of forced labor.",
+                translator: "A.F.P. Hulsewë",
+                source: "Remnants of Ch‘in Law",
+                year: "1985",
+                type: "律令",
+                keywords: ["盗采", "桑叶", "赀", "徭", "城旦舂"],   // 包含可搜关键词
+                image: "https://www.bmnh.org.cn/Uploads/2019-03-21/5c935efb29b29.jpg",  // 简牍参考图（可用真实图片）
+                imageCaption: "睡虎地秦简 · 摹本（示意）"
+            },
+            {
+                id: "里耶·8-133",
+                chinese: "敢言之：迁陵库真□。",
+                english: "I venture to report: The Qianling storehouse truly…",
+                translator: "里耶秦简博物馆",
+                source: "《里耶秦简博物馆图录》",
+                year: "2012",
+                type: "行政文书",
+                keywords: ["敢言之", "迁陵", "库", "里耶"],
+                image: "https://www.kaogu.cn/uploads/images/2021/0923/20210923022121554.png",  // 里耶简牍照片
+                imageCaption: "里耶秦简 8-133（局部）"
+            },
+            {
+                id: "睡虎地·日书·甲种·20",
+                chinese: "戌，生子，好衣。",
+                english: "On xu day, if a child is born, he will like fine clothes.",
+                translator: "刘乐贤",
+                source: "《睡虎地秦简日书研究》英译章节",
+                year: "1994",
+                type: "日书",
+                keywords: ["戌", "地支", "生子", "好衣", "日书"],
+                image: "https://www.kaogu.cn/uploads/images/2021/0923/20210923021509962.png", // 日书图版
+                imageCaption: "睡虎地日书 · 甲种"
+            },
+            // ----- 下面你可以继续添加更多语料，格式同上 -----
+            {
+                id: "岳麓叁·124",
+                chinese: "赀二甲，耐。",
+                english: "Fined two suits of armor and shaved.",
+                translator: "陈松长",
+                source: "岳麓书院藏秦简（英译论文）",
+                year: "2018",
+                type: "律令",
+                keywords: ["赀", "二甲", "耐", "刑名"],
+                image: "",  // 无图，将显示占位信息
+                imageCaption: ""
+            }
+        ];
+
+        // 更新总简牍数
+        document.getElementById('totalCount').innerText = corpus.length;
+
+        // 渲染卡片 (接收数组)
+        function renderCards(dataArray) {
+            const container = document.getElementById('cardContainer');
+            const resultCountSpan = document.getElementById('resultCount');
+
+            if (!dataArray || dataArray.length === 0) {
+                container.innerHTML = '<div class="no-result">🕊️ 未检索到相关简牍 · 请尝试其他关键词</div>';
+                resultCountSpan.innerText = '共 0 条结果';
+                return;
+            }
+
+            // 更新结果条数
+            resultCountSpan.innerText = `共 ${dataArray.length} 条结果`;
+
+            let html = '';
+            dataArray.forEach(item => {
+                // 处理关键词标签
+                let keywordsHtml = '';
+                if (item.keywords && item.keywords.length) {
+                    item.keywords.forEach(kw => {
+                        keywordsHtml += `<span class="keyword">🏷️ ${kw}</span>`;
+                    });
+                }
+
+                // 处理图片区域 —— 如果有图就显示图，没图显示文字
+                let imageHtml = '';
+                if (item.image && item.image.trim() !== '') {
+                    imageHtml = `
+                        <div class="image-area">
+                            <img src="${item.image}" alt="${item.id}简牍图" loading="lazy">
+                            <div style="margin-top:6px; font-size:0.8rem; color:#7b6e5c;">${item.imageCaption || '简牍图像'}</div>
+                        </div>
+                    `;
+                } else {
+                    imageHtml = `
+                        <div class="image-area no-image">
+                            ⚬ 暂无对应图像 · 待补
+                        </div>
+                    `;
+                }
+
+                // 拼接卡片
+                html += `
+                    <div class="card">
+                        <span class="jian-number">⏺ ${item.id}</span>
+                        <div class="chinese">${item.chinese}</div>
+                        <div class="english">“ ${item.english} ”</div>
+                        <div class="meta">
+                            <span>📖 ${item.translator || '佚名'} · ${item.year || '无年'}</span>
+                            <span>📂 ${item.type || '未分类'}</span>
+                        </div>
+                        <div class="meta" style="margin-top:-0.2rem;">
+                            ${keywordsHtml}
+                        </div>
+                        ${imageHtml}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 重置搜索：显示全部
+        window.resetSearch = function() {
+            document.getElementById('searchInput').value = '';
+            renderCards(corpus);
+        };
+
+        // 执行搜索（关键词匹配：简号、中文、英文、关键词、类型、译者等）
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (query === '') {
+                renderCards(corpus);
+                return;
+            }
+
+            const filtered = corpus.filter(item => {
+                // 在多个字段里进行模糊匹配
+                const inId = item.id.toLowerCase().includes(query);
+                const inChinese = item.chinese.toLowerCase().includes(query);
+                const inEnglish = item.english.toLowerCase().includes(query);
+                const inTranslator = (item.translator || '').toLowerCase().includes(query);
+                const inSource = (item.source || '').toLowerCase().includes(query);
+                const inType = (item.type || '').toLowerCase().includes(query);
+                
+                // 关键词数组匹配
+                let inKeywords = false;
+                if (item.keywords && item.keywords.length) {
+                    inKeywords = item.keywords.some(kw => kw.toLowerCase().includes(query));
+                }
+
+                return inId || inChinese || inEnglish || inTranslator || inSource || inType || inKeywords;
+            });
+
+            renderCards(filtered);
+        }
+
+        // 监听搜索按钮
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+
+        // 监听输入框按回车
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        // 页面加载时显示所有语料
+        window.onload = function() {
+            renderCards(corpus);
+        };
+    </script>
+</body>
+</html>
